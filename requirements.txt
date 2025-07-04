@@ -4,6 +4,4 @@ numpy
 matplotlib
 seaborn
 yfinance
-tensorflow
 scikit-learn
-plotly
