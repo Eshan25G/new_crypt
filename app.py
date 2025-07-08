@@ -94,32 +94,40 @@ class CryptoAnalyzer:
         if data is None or data.empty:
             return None
         
-        # RSI
-        data['RSI'] = ta.momentum.RSIIndicator(data['Close']).rsi()
-        
-        # MACD
-        macd = ta.trend.MACD(data['Close'])
-        data['MACD'] = macd.macd()
-        data['MACD_Signal'] = macd.macd_signal()
-        data['MACD_Histogram'] = macd.macd_diff()
-        
-        # Bollinger Bands
-        bb = ta.volatility.BollingerBands(data['Close'])
-        data['BB_Upper'] = bb.bollinger_hband()
-        data['BB_Middle'] = bb.bollinger_mavg()
-        data['BB_Lower'] = bb.bollinger_lband()
-        
-        # Moving Averages
-        data['SMA_20'] = ta.trend.SMAIndicator(data['Close'], window=20).sma_indicator()
-        data['SMA_50'] = ta.trend.SMAIndicator(data['Close'], window=50).sma_indicator()
-        data['EMA_12'] = ta.trend.EMAIndicator(data['Close'], window=12).ema_indicator()
-        data['EMA_26'] = ta.trend.EMAIndicator(data['Close'], window=26).ema_indicator()
-        
-        # Volume indicators
-        data['Volume_SMA'] = ta.volume.VolumeSMAIndicator(data['Close'], data['Volume']).volume_sma()
-        
-        # Volatility
-        data['ATR'] = ta.volatility.AverageTrueRange(data['High'], data['Low'], data['Close']).average_true_range()
+        try:
+            # RSI
+            data['RSI'] = ta.momentum.RSIIndicator(data['Close']).rsi()
+            
+            # MACD
+            macd = ta.trend.MACD(data['Close'])
+            data['MACD'] = macd.macd()
+            data['MACD_Signal'] = macd.macd_signal()
+            data['MACD_Histogram'] = macd.macd_diff()
+            
+            # Bollinger Bands
+            bb = ta.volatility.BollingerBands(data['Close'])
+            data['BB_Upper'] = bb.bollinger_hband()
+            data['BB_Middle'] = bb.bollinger_mavg()
+            data['BB_Lower'] = bb.bollinger_lband()
+            
+            # Moving Averages
+            data['SMA_20'] = ta.trend.SMAIndicator(data['Close'], window=20).sma_indicator()
+            data['SMA_50'] = ta.trend.SMAIndicator(data['Close'], window=50).sma_indicator()
+            data['EMA_12'] = ta.trend.EMAIndicator(data['Close'], window=12).ema_indicator()
+            data['EMA_26'] = ta.trend.EMAIndicator(data['Close'], window=26).ema_indicator()
+            
+            # Volume indicators (using pandas rolling mean instead of TA-Lib)
+            data['Volume_SMA'] = data['Volume'].rolling(window=20).mean()
+            
+            # Volatility
+            data['ATR'] = ta.volatility.AverageTrueRange(data['High'], data['Low'], data['Close']).average_true_range()
+            
+            # Fill NaN values
+            data = data.bfill().ffill()
+            
+        except Exception as e:
+            st.error(f"Error calculating technical indicators: {str(e)}")
+            return None
         
         return data
     
